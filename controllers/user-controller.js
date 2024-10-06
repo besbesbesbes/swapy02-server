@@ -3,7 +3,16 @@ const tryCatch = require("../utils/try-catch");
 const createError = require("../utils/create-error");
 
 module.exports.userInfo = tryCatch(async (req, res, next) => {
-  res.json({ user: req.user, msg: "Get usr info successful..." });
+  const returnUser = await prisma.user.findUnique({
+    where: {
+      userId: req.user.userId,
+    },
+  });
+  if (!returnUser) {
+    createError(400, "User not found!");
+  }
+  const { userPassword, ...restUser } = returnUser;
+  res.json({ user: restUser, msg: "Get user info successful..." });
 });
 module.exports.updateUserInfo = tryCatch(async (req, res, next) => {
   const {
