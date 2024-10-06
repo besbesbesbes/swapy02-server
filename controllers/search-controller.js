@@ -15,6 +15,42 @@ module.exports.searchBy = tryCatch(async (req, res, next) => {
       user: {
         userIsReady: true,
       },
+      assetStatus: "READY",
+    },
+    orderBy: {
+      assetId: "desc",
+    },
+    include: {
+      assetPics: true,
+      user: {
+        select: {
+          userId: true,
+          userDisplayName: true,
+          userProfilePic: true,
+          userLocation: true,
+          userRating: true,
+          userRatingCount: true,
+        },
+      },
+    },
+  });
+  res.json({ msg: "Search by successfull...", assets });
+});
+
+module.exports.searchAll = tryCatch(async (req, res, next) => {
+  const { v, c, i, a } = req.query;
+  const assets = await prisma.asset.findMany({
+    where: {
+      assetName: {
+        contains: v || "",
+      },
+      assetCategory: c || undefined,
+      userId: i ? Number(i) : undefined,
+      assetId: a ? Number(a) : undefined,
+      assetIsReady: true,
+      user: {
+        userIsReady: true,
+      },
     },
     orderBy: {
       assetId: "desc",
@@ -43,6 +79,7 @@ module.exports.searchHighlight = tryCatch(async (req, res, next) => {
       user: {
         userIsReady: true,
       },
+      assetStatus: "READY",
     },
     include: {
       assetPics: true,
