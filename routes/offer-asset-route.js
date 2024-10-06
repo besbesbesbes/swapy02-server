@@ -9,8 +9,13 @@ offerAsestRoute.get(
   offerAssetControlloer.getAssets
 );
 offerAsestRoute.post(
-  "/:offerId/:assetId",
+  "/add/:offerId/:assetId",
   authenticate,
   offerAssetControlloer.addAsset
+);
+offerAsestRoute.post(
+  "/del/:offerId/:assetId",
+  authenticate,
+  offerAssetControlloer.delAsset
 );
 module.exports = offerAsestRoute;

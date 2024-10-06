@@ -28,7 +28,7 @@ module.exports.getAssets = tryCatch(async (req, res, next) => {
 module.exports.addAsset = tryCatch(async (req, res, next) => {
   const { offerId, assetId } = req.params;
   const { userId } = req.user;
-  console.log(assetId, offerId, userId);
+  //   console.log(assetId, offerId, userId);
   //validate
   const offer = await prisma.offer.findUnique({
     where: {
@@ -63,5 +63,55 @@ module.exports.addAsset = tryCatch(async (req, res, next) => {
   res.json({
     msg: "Offer asset addAsset",
     newOfferAsset,
+  });
+});
+
+module.exports.delAsset = tryCatch(async (req, res, next) => {
+  const { offerId, assetId } = req.params;
+  const { userId } = req.user;
+  // console.log(assetId, offerId, userId);
+  //validate
+  const offer = await prisma.offer.findUnique({
+    where: {
+      offerId: Number(offerId),
+      OR: [{ offerorId: userId }, { swaperId: userId }],
+    },
+  });
+  if (!offer) {
+    createError(400, "Offer not found or unauthorized!");
+  }
+  //delAsset
+  const delOfferAsset = await prisma.offerAsset.findFirst({
+    where: {
+      offerId: Number(offerId),
+      assetId: Number(assetId),
+    },
+    include: {
+      asset: true,
+      offer: true,
+    },
+  });
+  if (!delOfferAsset) {
+    createError(400, "Offer not found");
+  }
+  console.log(delOfferAsset.assetId);
+  await prisma.offerAsset.delete({
+    where: {
+      offerAssetId: delOfferAsset.offerAssetId,
+    },
+  });
+  //patchOffer
+  await prisma.offer.update({
+    where: {
+      offerId: Number(offerId),
+    },
+    data: {
+      offerorStatus: false,
+      swaperStatus: false,
+    },
+  });
+  res.json({
+    msg: "Offer asset delAsset",
+    delOfferAsset,
   });
 });
