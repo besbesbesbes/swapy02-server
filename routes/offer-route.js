@@ -14,5 +14,19 @@ offerRoute.get(
   authenticate,
   offerController.getOfferMessage
 );
-
+offerRoute.post(
+  "/createOffer/:assetId",
+  authenticate,
+  offerController.createOffer
+);
+offerRoute.post(
+  "/rejectOffer/:offerId",
+  authenticate,
+  offerController.rejectOffer
+);
+offerRoute.post(
+  "/acceptOffer/:offerId",
+  authenticate,
+  offerController.acceptOffer
+);
 module.exports = offerRoute;
