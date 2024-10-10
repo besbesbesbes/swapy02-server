@@ -193,5 +193,152 @@ module.exports.rejectOffer = tryCatch(async (req, res) => {
   res.json({ msg: "Reject Offer", returnOffer });
 });
 module.exports.acceptOffer = tryCatch(async (req, res) => {
-  res.json({ msg: "Accept Offer" });
+  const { offerId } = req.params;
+  const { userId } = req.user;
+  //validate
+  const offer = await prisma.offer.findUnique({
+    where: {
+      offerId: Number(offerId),
+      OR: [{ offerorId: userId }, { swaperId: userId }],
+    },
+  });
+  if (!offer) {
+    createError(400, "Offer not found or unautorinzed!");
+  }
+  //anaylst side
+  let data = {};
+  if (offer.offerorId == userId) {
+    data = {
+      offerorStatus: true,
+    };
+  } else {
+    data = {
+      swaperStatus: true,
+    };
+  }
+  //accept only 1 side
+  await prisma.offer.update({
+    where: {
+      offerId: offer.offerId,
+    },
+    data: data,
+  });
+  //accept both side
+  const returnOffer = await prisma.offer.findUnique({
+    where: {
+      offerId: Number(offerId),
+    },
+    include: {
+      offerAssets: {
+        include: {
+          asset: {
+            select: {
+              assetId: true,
+              assetName: true,
+              assetCategory: true,
+              assetCondition: true,
+              assetThumbnail: true,
+              userId: true,
+            },
+          },
+        },
+      },
+    },
+  });
+  if (returnOffer.offerorStatus && returnOffer.swaperStatus) {
+    //update offer status
+    await prisma.offer.update({
+      where: {
+        offerId: Number(offerId),
+      },
+      data: {
+        offerStatus: "ACCEPTED",
+      },
+    });
+    for (const el of returnOffer.offerAssets) {
+      //update asset status
+      const assetUser = await prisma.asset.findUnique({
+        where: {
+          assetId: el.assetId,
+        },
+        include: {
+          user: true,
+        },
+      });
+      await prisma.asset.update({
+        where: {
+          assetId: el.assetId,
+        },
+        data: {
+          assetStatus: "MATCHED",
+          assetShippingAddress: assetUser.user.userAddress,
+        },
+      });
+      //update another offer relate with asset
+      const offerAssets = await prisma.offerAsset.findMany({
+        where: {
+          assetId: el.assetId,
+        },
+      });
+      for (const el of offerAssets) {
+        if (el.offerId !== Number(offerId)) {
+          await prisma.offer.update({
+            where: {
+              offerId: el.offerId,
+            },
+            data: {
+              offerStatus: "REJECTED",
+              offerorStatus: false,
+              swaperStatus: false,
+            },
+          });
+          //addMsg
+          await prisma.message.create({
+            data: {
+              userId: userId,
+              offerId: el.offerId,
+              messageTxt: "Rejected: Some asset was accepted by another offer.",
+              messageIsAuto: true,
+            },
+          });
+        }
+      }
+      // console.log(offerAssets);
+    }
+  }
+  res.json({ msg: "Accept Offer", offer });
+});
+
+module.exports.pendingOffer = tryCatch(async (req, res) => {
+  const { offerId } = req.params;
+  const { userId } = req.user;
+  //validate
+  const offer = await prisma.offer.findUnique({
+    where: {
+      offerId: Number(offerId),
+      OR: [{ offerorId: userId }, { swaperId: userId }],
+    },
+  });
+  if (!offer) {
+    createError(400, "Offer not found or unautorinzed!");
+  }
+  //anaylst side
+  let data = {};
+  if (offer.offerorId == userId) {
+    data = {
+      offerorStatus: false,
+    };
+  } else {
+    data = {
+      swaperStatus: false,
+    };
+  }
+  //pending offer
+  await prisma.offer.update({
+    where: {
+      offerId: offer.offerId,
+    },
+    data: data,
+  });
+  res.json({ msg: "Pending Offer", offer });
 });

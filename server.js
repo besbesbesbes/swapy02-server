@@ -11,6 +11,7 @@ const assetRoute = require("./routes/asset-route");
 const offerRoute = require("./routes/offer-route");
 const msgRoute = require("./routes/msg-route");
 const offerAsestRoute = require("./routes/offer-asset-route");
+const shippingRoute = require("./routes/shipping-route");
 
 //middleware
 app.use(cors());
@@ -24,6 +25,7 @@ app.use("/api/asset", assetRoute);
 app.use("/api/offer", offerRoute);
 app.use("/api/msg", msgRoute);
 app.use("/api/offer/asset", offerAsestRoute);
+app.use("/api/shipping", shippingRoute);
 app.use(notFound);
 app.use(errorMiddleware);
 

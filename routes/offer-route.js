@@ -29,4 +29,9 @@ offerRoute.post(
   authenticate,
   offerController.acceptOffer
 );
+offerRoute.post(
+  "/pendingOffer/:offerId",
+  authenticate,
+  offerController.pendingOffer
+);
 module.exports = offerRoute;

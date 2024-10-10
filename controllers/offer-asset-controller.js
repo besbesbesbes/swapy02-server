@@ -8,6 +8,7 @@ module.exports.getAssets = tryCatch(async (req, res, next) => {
   const assets = await prisma.asset.findMany({
     where: {
       userId: Number(userId),
+      assetStatus: "READY",
     },
   });
   const offerAssets = await prisma.offerAsset.findMany({
