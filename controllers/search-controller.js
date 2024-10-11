@@ -47,10 +47,10 @@ module.exports.searchAll = tryCatch(async (req, res, next) => {
       assetCategory: c || undefined,
       userId: i ? Number(i) : undefined,
       assetId: a ? Number(a) : undefined,
-      assetIsReady: true,
-      user: {
-        userIsReady: true,
-      },
+      // assetIsReady: true,
+      // user: {
+      //   userIsReady: true,
+      // },
     },
     orderBy: {
       assetId: "desc",

@@ -1,6 +1,10 @@
 const prisma = require("../models");
 const tryCatch = require("../utils/try-catch");
 const createError = require("../utils/create-error");
+const cloudinary = require("../config/cloundinary");
+const fs = require("fs/promises");
+const getPublicId = require("../utils/getPublicId");
+const path = require("path");
 
 module.exports.createAsset = tryCatch(async (req, res, next) => {
   const user = req.user;
@@ -10,10 +14,10 @@ module.exports.createAsset = tryCatch(async (req, res, next) => {
     assetBrand,
     assetCondition,
     assetNote,
-    assetThumbnail,
+    // assetThumbnail,
   } = req.body;
   // validate
-  if (!assetName || !assetCategory || !assetCondition || !assetThumbnail) {
+  if (!assetName || !assetCategory || !assetCondition) {
     return createError(400, "Asset info should be provided");
   }
   const fieldsToValidate = [
@@ -22,15 +26,33 @@ module.exports.createAsset = tryCatch(async (req, res, next) => {
     { value: assetBrand, name: "Asset brand" },
     { value: assetCondition, name: "Asset condition" },
     { value: assetNote, name: "Asset note" },
-    { value: assetThumbnail, name: "Asset thumbnail" },
+    // { value: assetThumbnail, name: "Asset thumbnail" },
   ];
   for (const field of fieldsToValidate) {
     if (field.value && typeof field.value !== "string") {
       return next(createError(400, `${field.name} must be a string`));
     }
   }
+  //upload to cloudinary
+  const haveFiles = !!req.files;
+  let uploadResults = [];
+  if (haveFiles) {
+    for (const file of req.files) {
+      try {
+        const uploadResult = await cloudinary.uploader.upload(file.path, {
+          overwrite: true,
+          public_id: path.parse(file.path).name,
+          folder: "test",
+        });
+        uploadResults.push(uploadResult.secure_url);
+        fs.unlink(file.path);
+      } catch (err) {
+        return next(createError(500, "Fail to upload image"));
+      }
+    }
+  }
   //create asset
-  const updatedAsset = await prisma.asset.create({
+  const newAsset = await prisma.asset.create({
     data: {
       userId: user.userId,
       assetName,
@@ -38,10 +60,47 @@ module.exports.createAsset = tryCatch(async (req, res, next) => {
       assetBrand,
       assetCondition,
       assetNote,
-      assetThumbnail,
+      assetThumbnail: uploadResults[0],
     },
   });
-  res.json({ msg: "Create asset sucessful...", assets: updatedAsset });
+  //create asset pic
+  for (const rs of uploadResults) {
+    await prisma.assetPic.create({
+      data: {
+        assetId: newAsset.assetId,
+        assetPic: rs,
+      },
+    });
+  }
+  res.json({ msg: "Create asset sucessful...", newAsset });
+});
+module.exports.assetReady = tryCatch(async (req, res, next) => {
+  const { userId } = req.user;
+  console.log(userId);
+  const { assetId } = req.params;
+  //validate
+  const asset = await prisma.asset.findUnique({
+    where: {
+      assetId: Number(assetId),
+    },
+  });
+  console.log(asset);
+  if (asset.userId !== userId) {
+    createError(400, "Asset not found or unauthorized!");
+  }
+  if (asset.assetStatus !== "CREATED") {
+    createError(400, "Asset not in CREATED status");
+  }
+  //update asset status
+  await prisma.asset.update({
+    where: {
+      assetId: Number(assetId),
+    },
+    data: {
+      assetStatus: "READY",
+    },
+  });
+  res.json({ msg: "Asset is ready..." });
 });
 
 module.exports.updateAsset = tryCatch(async (req, res, next) => {
