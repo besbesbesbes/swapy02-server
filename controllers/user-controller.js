@@ -111,6 +111,46 @@ module.exports.updateUserInfo = tryCatch(async (req, res, next) => {
       userProfilePic: true,
     },
   });
+  //if user not ready
+  if (!returnUser.userIsReady) {
+    const offers = await prisma.offer.findMany({
+      where: {
+        OR: [{ offerorId: returnUser.userId }, { swaperId: returnUser.userId }],
+        offerStatus: "CREATED",
+      },
+    });
+    //update offer
+    if (offers) {
+      for (const offer of offers) {
+        // update offeror & swaper status
+        await prisma.offer.update({
+          where: {
+            offerId: offer.offerId,
+          },
+          data: {
+            offerStatus: "REJECTED",
+            offerorStatus: false,
+            swaperStatus: false,
+          },
+        });
+        // add msg
+        let side = "";
+        if (user.userId == offer.offerorId) {
+          side = "Offeror";
+        } else {
+          side = "Swaper";
+        }
+        await prisma.message.create({
+          data: {
+            userId: user.userId,
+            offerId: offer.offerId,
+            messageIsAuto: true,
+            messageTxt: `${side} has rejected offer after update their profile.`,
+          },
+        });
+      }
+    }
+  }
 
   res.json({ user: returnUser, msg: "User update successful..." });
 });
@@ -162,7 +202,7 @@ module.exports.changePassword = tryCatch(async (req, res, next) => {
       userEmail: true,
     },
   });
-  res.json({ msg: "Change Password", newUser });
+  res.json({ msg: "Change password sucessful...", newUser });
 });
 
 module.exports.changeProfilePic = tryCatch(async (req, res, next) => {

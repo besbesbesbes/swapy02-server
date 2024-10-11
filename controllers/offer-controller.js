@@ -205,6 +205,15 @@ module.exports.acceptOffer = tryCatch(async (req, res) => {
   if (!offer) {
     createError(400, "Offer not found or unautorinzed!");
   }
+  // validate user is ready
+  const user = await prisma.user.findUnique({
+    where: {
+      userId,
+    },
+  });
+  if (!user.userIsReady) {
+    createError(400, "User is not ready");
+  }
   //anaylst side
   let data = {};
   if (offer.offerorId == userId) {
