@@ -10,8 +10,13 @@ assetRoute.post(
   upload.array("images", 10),
   assetController.createAsset
 );
-assetRoute.patch("/", authenticate, assetController.updateAsset);
-assetRoute.delete("/", authenticate, assetController.deleteAsset);
+assetRoute.patch(
+  "/",
+  authenticate,
+  upload.array("images", 10),
+  assetController.updateAsset
+);
+assetRoute.delete("/:assetId", authenticate, assetController.deleteAsset);
 assetRoute.post(
   "/assetReady/:assetId",
   authenticate,

@@ -201,9 +201,16 @@ module.exports.acceptOffer = tryCatch(async (req, res) => {
       offerId: Number(offerId),
       OR: [{ offerorId: userId }, { swaperId: userId }],
     },
+    include: {
+      offerAssets: true,
+    },
   });
   if (!offer) {
     createError(400, "Offer not found or unautorinzed!");
+  }
+  // validate offer has at least 1 asset
+  if (offer.offerAssets.length == 0) {
+    createError(400, "At least 1 asset for accept offer!");
   }
   // validate user is ready
   const user = await prisma.user.findUnique({
