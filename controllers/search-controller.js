@@ -48,8 +48,8 @@ module.exports.searchBy = tryCatch(async (req, res, next) => {
         },
       },
     },
-    take: Number(p) == 0 ? totalAssetsCount : 24,
-    skip: Number(p) == 0 ? 0 : Number(p) * 24 - 24,
+    take: Number(p) == 0 ? totalAssetsCount : 25,
+    skip: Number(p) == 0 ? 0 : Number(p) * 25 - 25,
   });
   res.json({ msg: "Search by successfull...", assets, totalAssetsCount });
 });
