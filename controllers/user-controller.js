@@ -128,7 +128,7 @@ module.exports.updateUserInfo = tryCatch(async (req, res, next) => {
             offerId: offer.offerId,
           },
           data: {
-            offerStatus: "REJECTED",
+            // offerStatus: "REJECTED",
             offerorStatus: false,
             swaperStatus: false,
           },
@@ -145,7 +145,7 @@ module.exports.updateUserInfo = tryCatch(async (req, res, next) => {
             userId: user.userId,
             offerId: offer.offerId,
             messageIsAuto: true,
-            messageTxt: `${side} has rejected offer after update their profile.`,
+            messageTxt: `${side} has pending offer after update their profile.`,
           },
         });
       }

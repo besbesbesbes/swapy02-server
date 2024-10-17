@@ -153,6 +153,15 @@ module.exports.createOffer = tryCatch(async (req, res) => {
       assetId: +assetId,
     },
   });
+  //count offer
+  await prisma.asset.update({
+    where: {
+      assetId: +assetId,
+    },
+    data: {
+      assetSwaperCount: asset.assetSwaperCount + 1,
+    },
+  });
   //return offer
   const returnOffer = await prisma.offer.findUnique({
     where: {

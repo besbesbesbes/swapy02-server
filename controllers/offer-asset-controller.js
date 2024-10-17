@@ -51,6 +51,29 @@ module.exports.addAsset = tryCatch(async (req, res, next) => {
       offer: true,
     },
   });
+  // add count
+  const asset = await prisma.asset.findUnique({
+    where: {
+      assetId: Number(assetId),
+    },
+  });
+  let updateData = {};
+  if (offer.offerorId == asset.userId) {
+    updateData = {
+      assetOfferorCount: asset.assetOfferorCount + 1,
+    };
+  } else {
+    updateData = {
+      assetSwaperCount: asset.assetSwaperCount + 1,
+    };
+  }
+  await prisma.asset.update({
+    where: {
+      assetId: Number(assetId),
+    },
+    data: updateData,
+  });
+
   //patchOffer
   await prisma.offer.update({
     where: {
@@ -100,6 +123,28 @@ module.exports.delAsset = tryCatch(async (req, res, next) => {
     where: {
       offerAssetId: delOfferAsset.offerAssetId,
     },
+  });
+  // add count
+  const asset = await prisma.asset.findUnique({
+    where: {
+      assetId: Number(assetId),
+    },
+  });
+  let updateData = {};
+  if (offer.offerorId == asset.userId) {
+    updateData = {
+      assetOfferorCount: asset.assetOfferorCount - 1,
+    };
+  } else {
+    updateData = {
+      assetSwaperCount: asset.assetSwaperCount - 1,
+    };
+  }
+  await prisma.asset.update({
+    where: {
+      assetId: Number(assetId),
+    },
+    data: updateData,
   });
   //patchOffer
   await prisma.offer.update({
