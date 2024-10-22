@@ -226,7 +226,10 @@ module.exports.changeProfilePic = tryCatch(async (req, res, next) => {
     uploadResult = await cloudinary.uploader.upload(req.file.path, {
       overwrite: true,
       public_id: path.parse(req.file.path).name,
-      folder: "test",
+      folder: "SwapyMarketplace/profile",
+      width: 200,
+      height: 200,
+      crop: "limit",
     });
     fs.unlink(req.file.path);
     const userProfilePicName = user.userProfilePic.split("/").pop();

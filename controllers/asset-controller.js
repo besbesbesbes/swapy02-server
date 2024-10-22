@@ -42,7 +42,10 @@ module.exports.createAsset = tryCatch(async (req, res, next) => {
         const uploadResult = await cloudinary.uploader.upload(file.path, {
           overwrite: true,
           public_id: path.parse(file.path).name,
-          folder: "test",
+          folder: "SwapyMarketplace/asset",
+          width: 350,
+          height: 350,
+          crop: "limit",
         });
         uploadResults.push(uploadResult.secure_url);
         fs.unlink(file.path);
@@ -145,7 +148,10 @@ module.exports.updateAsset = tryCatch(async (req, res, next) => {
       const uploadResult = await cloudinary.uploader.upload(file.path, {
         overwrite: true,
         public_id: path.parse(file.path).name,
-        folder: "test",
+        folder: "SwapyMarketplace/asset",
+        width: 350,
+        height: 350,
+        crop: "limit",
       });
       uploadResults.push(uploadResult.secure_url);
       fs.unlink(file.path);
