@@ -1,9 +1,9 @@
 const path = require("path");
 const multer = require("multer");
 
+const uploadDirectory = path.join(process.cwd(), "public", "upload-pic");
 const storage = multer.diskStorage({
-  destination: (req, file, cb) =>
-    cb(null, path.join(__dirname, "../public/upload-pic")),
+  destination: (req, file, cb) => cb(null, uploadDirectory),
   filename: (req, file, cb) => {
     const { userId } = req.user;
     const fullFilename = `${userId}_${Date.now()}_${Math.round(
