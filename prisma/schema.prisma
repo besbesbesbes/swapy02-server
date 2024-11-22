@@ -16,7 +16,7 @@ model User {
   userEmail       String    @unique @map("user_email")
   userPassword    String    @map("user_password")
   userBio         String?   @map("user_bio")
-  userProfilePic  String    @default("../src/pics/user-pic-default.png") @map("user_profile_pic")
+  userProfilePic  String    @default("../pics/user-pic-default.png") @map("user_profile_pic")
   userRating      Decimal   @default(0) @map("user_rating")
   userRatingCount Int       @default(0) @map("user_rating_count")
   userLocation    String?   @map("user_location")
